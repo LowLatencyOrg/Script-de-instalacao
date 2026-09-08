@@ -135,6 +135,10 @@ CREATE TABLE IF NOT EXISTS registro (
     discoEspacoLivre INT,
     downloadRede BIGINT,
     uploadRede BIGINT,
+    statusCpu VARCHAR (10),
+    statusRam VARCHAR(10),
+    statusDisco VARCHAR (10),
+    statusGeral(10),
     dtRegistro DATETIME,
     CONSTRAINT pkComposta PRIMARY KEY (idRegistro, fkMaquina),
     CONSTRAINT fkMaquinaRegistro

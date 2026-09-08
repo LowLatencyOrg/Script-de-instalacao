@@ -138,7 +138,7 @@ CREATE TABLE IF NOT EXISTS registro (
     statusCpu VARCHAR (10),
     statusRam VARCHAR(10),
     statusDisco VARCHAR (10),
-    statusGeral(10),
+    statusGeral VARCHAR(10),
     dtRegistro DATETIME,
     CONSTRAINT pkComposta PRIMARY KEY (idRegistro, fkMaquina),
     CONSTRAINT fkMaquinaRegistro

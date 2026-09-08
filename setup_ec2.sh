@@ -65,87 +65,30 @@ sudo apt install mysql-server -y
 sudo systemctl enable mysql
 sudo systemctl start mysql
 
-echo "Criando usuário, banco e tabelas..."
+echo "Criando banco e usuário..."
 
 sudo mysql <<EOF
-
 CREATE DATABASE IF NOT EXISTS $DATABASE;
-
-USE $DATABASE;
 
 CREATE USER IF NOT EXISTS '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASS';
 
-GRANT ALL PRIVILEGES ON *.* TO '$MYSQL_USER'@'%' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON $DATABASE.* TO '$MYSQL_USER'@'%';
 
 FLUSH PRIVILEGES;
-
-CREATE TABLE IF NOT EXISTS empresa (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    nomeFantasia VARCHAR(45),
-    telefone CHAR(11),
-    cnpj CHAR(14),
-    razaoSocial VARCHAR(45),
-    email VARCHAR(45),
-    codigoAtivacao CHAR(5)
-);
-
-CREATE TABLE IF NOT EXISTS cargo (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    titulo VARCHAR(45)
-);
-
-CREATE TABLE IF NOT EXISTS funcionario (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    nome VARCHAR(45),
-    email VARCHAR(45),
-    senha VARCHAR(45),
-    dataNascimento DATE,
-    fkEmpresa INT,
-    fkCargo INT,
-    CONSTRAINT fkEmpresaFuncionario
-        FOREIGN KEY (fkEmpresa) REFERENCES empresa(id),
-    CONSTRAINT fkCargoFuncionario
-        FOREIGN KEY (fkCargo) REFERENCES cargo(id)
-);
-
-CREATE TABLE IF NOT EXISTS maquina (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    nome VARCHAR(45) NOT NULL,
-    nucleosFisicos INT,
-    nucleosLogicos INT,
-    capacidadeTotal BIGINT,
-    ramTotal BIGINT,
-    dtCadastro DATETIME,
-    fkEmpresa INT,
-    CONSTRAINT fkMaquinaEmpresa
-        FOREIGN KEY (fkEmpresa) REFERENCES empresa(id)
-);
-
-CREATE TABLE IF NOT EXISTS registro (
-    idRegistro INT AUTO_INCREMENT,
-    fkMaquina INT,
-    cpuPorcentagemUso DECIMAL(4,1),
-    cpuFrequenciaAtual INT,
-    cpuUsoPorNucleo VARCHAR(255),
-    cpuTemperatura DECIMAL(5,2),
-    ramDisponivel INT,
-    ramUsada INT,
-    ramPercentualUso DECIMAL(4,1),
-    discoEspacoUsado INT,
-    discoEspacoLivre INT,
-    downloadRede BIGINT,
-    uploadRede BIGINT,
-    statusCpu VARCHAR (10),
-    statusRam VARCHAR(10),
-    statusDisco VARCHAR (10),
-    statusGeral VARCHAR(10),
-    dtRegistro DATETIME,
-    CONSTRAINT pkComposta PRIMARY KEY (idRegistro, fkMaquina),
-    CONSTRAINT fkMaquinaRegistro
-        FOREIGN KEY (fkMaquina) REFERENCES maquina(id)
-);
-
 EOF
+
+echo "Importando scriptModel.sql..."
+
+SCRIPT_SQL="$HOME/$PASTA/scriptModel.sql"
+
+if [ -f "$SCRIPT_SQL" ]; then
+    sudo mysql "$DATABASE" < "$SCRIPT_SQL"
+    echo "Tabelas importadas com sucesso."
+else
+    echo "ERRO: scriptModel.sql não encontrado em:"
+    echo "$SCRIPT_SQL"
+    exit 1
+fi
 
 echo "Banco '$DATABASE' criado."
 echo "Usuário '$MYSQL_USER' configurado."
@@ -189,24 +132,18 @@ python3 --version
 echo ""
 echo "[7/8] Instalando bibliotecas do requirements.txt..."
 
-cd ~/$PASTA
+cd "$HOME/$PASTA"
 
 echo "Atualizando pip..."
 
 python3 -m pip install --upgrade pip --break-system-packages
 
 if [ -f requirements.txt ]; then
-
     echo "requirements.txt encontrado."
-
     python3 -m pip install -r requirements.txt --break-system-packages
-
     echo "Bibliotecas instaladas com sucesso."
-
 else
-
     echo "Arquivo requirements.txt não encontrado!"
-
 fi
 
 # --------------------------------------------------
